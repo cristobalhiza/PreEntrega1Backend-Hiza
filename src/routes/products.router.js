@@ -112,7 +112,7 @@ router.put('/:pid', async (req, res) => {
     delete aModificar.id;
 
     try {
-        const updatedProduct = await ProductsManager.updateProduct(pid, aModificar); 
+        const updatedProduct = await ProductsManager.updateProduct(pid, aModificar);
         res.setHeader("Content-Type", "application/json");
         return res.status(200).json({ product: updatedProduct });
     } catch (error) {

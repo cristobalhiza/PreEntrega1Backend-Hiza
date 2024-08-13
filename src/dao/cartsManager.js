@@ -7,11 +7,9 @@ export class CartsManager {
 
     async getCarts() {
         try {
-            // Utiliza fs.access para verificar si el archivo existe
             try {
                 await fs.access(this.path);
             } catch (error) {
-                // Si fs.access lanza un error, significa que el archivo no existe
                 return [];
             }
 
