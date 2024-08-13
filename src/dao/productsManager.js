@@ -5,13 +5,15 @@ export class ProductsManager {
 
     static async getProducts(limit) {
         try {
-            if (await fs.existsSync(this.path)) {
-                const data = await fs.readFile(this.path, 'utf-8');
-                const products = JSON.parse(data);
-                return limit ? products.slice(0, limit) : products;
-            } else {
+            try {
+                await fs.access(this.path);
+            } catch (error) {
                 return [];
             }
+
+            const data = await fs.readFile(this.path, 'utf-8');
+            const products = data ? JSON.parse(data) : [];
+            return limit ? products.slice(0, limit) : products;
         } catch (error) {
             console.error("Error al leer los productos:", error);
             throw new Error("No se pudieron obtener los productos");
@@ -35,6 +37,12 @@ export class ProductsManager {
     static async addProduct(product = {}) {
         try {
             const products = await this.getProducts();
+
+            const existingProduct = products.find(p => p.title === product.title);
+            if (existingProduct) {
+                throw new Error(`Ya existe un producto con el título "${product.title}".`);
+            }
+
             const newProduct = {
                 id: this.generateId(products),
                 ...product,
@@ -52,6 +60,12 @@ export class ProductsManager {
     static async updateProduct(id, productData) {
         try {
             const products = await this.getProducts();
+
+            const existingProduct = products.find(p => p.title === productData.title && p.id !== id);
+            if (existingProduct) {
+                throw new Error(`Ya existe un producto con el título "${productData.title}".`);
+            }
+
             const index = products.findIndex(p => p.id === id);
             if (index !== -1) {
                 products[index] = { ...products[index], ...productData, id };

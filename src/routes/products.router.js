@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import { ProductsManager } from '../dao/productsManager.js';
+import { ProductsManager } from '../dao/productsManager.js'
 
 const router = Router();
-const productsManager = new ProductsManager('./src/data/products.json');
+ProductsManager.path = 'src/data/products.json';
 
 router.get('/', async (req, res) => {
     let products;
     try {
-        products = await productsManager.getProducts();
+        products = await ProductsManager.getProducts();
     } catch (error) {
         res.setHeader("Content-Type", "application/json");
         return res.status(500).json({
@@ -50,7 +50,7 @@ router.get('/:pid', async (req, res) => {
 
     let product;
     try {
-        product = await productsManager.getProductById(pid);
+        product = await ProductsManager.getProductById(pid);
     } catch (error) {
         res.setHeader("Content-Type", "application/json");
         return res.status(500).json({
@@ -74,7 +74,7 @@ router.post('/', async (req, res) => {
     }
 
     try {
-        const addedProduct = await productsManager.addProduct({ title, description, code, price, stock, category, ...otros });
+        const addedProduct = await ProductsManager.addProduct({ title, description, code, price, stock, category, ...otros }); // Cambiado de productsManager a ProductsManager
         res.setHeader("Content-Type", "application/json");
         return res.status(201).json({ product: addedProduct });
     } catch (error) {
@@ -95,7 +95,7 @@ router.put('/:pid', async (req, res) => {
 
     let product;
     try {
-        product = await productsManager.getProductById(pid);
+        product = await ProductsManager.getProductById(pid);
     } catch (error) {
         res.setHeader("Content-Type", "application/json");
         return res.status(500).json({
@@ -112,7 +112,7 @@ router.put('/:pid', async (req, res) => {
     delete aModificar.id;
 
     try {
-        const updatedProduct = await productsManager.updateProduct(pid, aModificar);
+        const updatedProduct = await ProductsManager.updateProduct(pid, aModificar); 
         res.setHeader("Content-Type", "application/json");
         return res.status(200).json({ product: updatedProduct });
     } catch (error) {
@@ -132,7 +132,7 @@ router.delete('/:pid', async (req, res) => {
     }
 
     try {
-        const result = await productsManager.deleteProduct(pid);
+        const result = await ProductsManager.deleteProduct(pid);
         if (result) {
             res.setHeader("Content-Type", "application/json");
             return res.status(200).json({ message: 'Producto eliminado' });

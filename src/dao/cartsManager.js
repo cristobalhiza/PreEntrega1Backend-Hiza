@@ -7,6 +7,14 @@ export class CartsManager {
 
     async getCarts() {
         try {
+            // Utiliza fs.access para verificar si el archivo existe
+            try {
+                await fs.access(this.path);
+            } catch (error) {
+                // Si fs.access lanza un error, significa que el archivo no existe
+                return [];
+            }
+
             const data = await fs.readFile(this.path, 'utf-8');
             return JSON.parse(data);
         } catch (error) {
@@ -65,6 +73,22 @@ export class CartsManager {
         } catch (error) {
             console.error("Error al agregar el producto al carrito:", error);
             throw new Error("No se pudo agregar el producto al carrito");
+        }
+    }
+
+    async deleteCart(id) {
+        try {
+            const carts = await this.getCarts();
+            const newCarts = carts.filter(c => c.id !== id);
+            if (carts.length !== newCarts.length) {
+                await fs.writeFile(this.path, JSON.stringify(newCarts, null, 2));
+                return true;
+            } else {
+                throw new Error(`Carrito con ID ${id} no encontrado`);
+            }
+        } catch (error) {
+            console.error("Error al eliminar el carrito:", error);
+            throw new Error("No se pudo eliminar el carrito");
         }
     }
 

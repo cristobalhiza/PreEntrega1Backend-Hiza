@@ -79,4 +79,28 @@ router.post('/:cid/product/:pid', async (req, res) => {
     }
 });
 
+router.delete('/:cid', async (req, res) => {
+    let { cid } = req.params;
+    cid = Number(cid);
+    if (isNaN(cid)) {
+        return res.status(400).json({ error: "El ID del carrito debe ser un número" });
+    }
+
+    try {
+        const result = await cartsManager.deleteCart(cid);
+        if (result) {
+            res.status(200).json({ message: 'Carrito eliminado' });
+        } else {
+            res.status(404).json({ error: `Carrito con ID ${cid} no encontrado` });
+        }
+    } catch (error) {
+        console.error("Error al eliminar el carrito:", error);
+        res.status(500).json({
+            error: "Error inesperado en el servidor - Intente nuevamente",
+            detalle: `${error.message}`,
+        });
+    }
+});
+
+
 export default router;
