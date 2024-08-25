@@ -5,18 +5,12 @@ export class ProductsManager {
 
     static async getProducts(limit) {
         try {
-            try {
-                await fs.access(this.path);
-            } catch (error) {
-                return [];
-            }
-
+            await fs.access(this.path);
             const data = await fs.readFile(this.path, 'utf-8');
             const products = data ? JSON.parse(data) : [];
             return limit ? products.slice(0, limit) : products;
         } catch (error) {
-            console.error("Error al leer los productos:", error);
-            throw new Error("No se pudieron obtener los productos");
+            throw new Error("No se pudieron obtener los productos: " + error.message);
         }
     }
 
@@ -29,8 +23,7 @@ export class ProductsManager {
             }
             return product;
         } catch (error) {
-            console.error("Error al obtener el producto por ID:", error);
-            throw error;
+            throw new Error("Error al obtener el producto por ID: " + error.message);
         }
     }
 
@@ -52,8 +45,7 @@ export class ProductsManager {
             await fs.writeFile(this.path, JSON.stringify(products, null, 2));
             return newProduct;
         } catch (error) {
-            console.error("Error al agregar el producto:", error);
-            throw new Error("No se pudo agregar el producto");
+            throw new Error("No se pudo agregar el producto: " + error.message);
         }
     }
 
@@ -75,8 +67,7 @@ export class ProductsManager {
                 throw new Error(`Producto con ID ${id} no encontrado`);
             }
         } catch (error) {
-            console.error("Error al actualizar el producto:", error);
-            throw new Error("No se pudo actualizar el producto");
+            throw new Error("No se pudo actualizar el producto: " + error.message);
         }
     }
 
@@ -91,8 +82,7 @@ export class ProductsManager {
                 throw new Error(`Producto con ID ${id} no encontrado`);
             }
         } catch (error) {
-            console.error("Error al eliminar el producto:", error);
-            throw new Error("No se pudo eliminar el producto");
+            throw new Error("No se pudo eliminar el producto: " + error.message);
         }
     }
 

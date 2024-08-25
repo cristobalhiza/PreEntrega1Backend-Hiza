@@ -7,17 +7,11 @@ export class CartsManager {
 
     async getCarts() {
         try {
-            try {
-                await fs.access(this.path);
-            } catch (error) {
-                return [];
-            }
-
+            await fs.access(this.path);
             const data = await fs.readFile(this.path, 'utf-8');
             return JSON.parse(data);
         } catch (error) {
-            console.error("Error al leer los carritos:", error);
-            throw new Error("No se pudieron obtener los carritos");
+            throw new Error("No se pudieron obtener los carritos: " + error.message);
         }
     }
 
@@ -30,25 +24,22 @@ export class CartsManager {
             }
             return cart;
         } catch (error) {
-            console.error("Error al obtener el carrito por ID:", error);
-            throw error;
+            throw new Error("Error al obtener el carrito por ID: " + error.message);
         }
     }
 
-    async createCart(cartData = {}) {
+    async createCart() {
         try {
             const carts = await this.getCarts();
             const newCart = {
                 id: this.generateId(carts),
                 products: [],
-                ...cartData
             };
             carts.push(newCart);
             await fs.writeFile(this.path, JSON.stringify(carts, null, 2));
             return newCart;
         } catch (error) {
-            console.error("Error al crear el carrito:", error);
-            throw new Error("No se pudo crear el carrito");
+            throw new Error("No se pudo crear el carrito: " + error.message);
         }
     }
 
@@ -69,8 +60,7 @@ export class CartsManager {
                 throw new Error(`Carrito con ID ${cartId} no encontrado`);
             }
         } catch (error) {
-            console.error("Error al agregar el producto al carrito:", error);
-            throw new Error("No se pudo agregar el producto al carrito");
+            throw new Error("No se pudo agregar el producto al carrito: " + error.message);
         }
     }
 
@@ -85,8 +75,7 @@ export class CartsManager {
                 throw new Error(`Carrito con ID ${id} no encontrado`);
             }
         } catch (error) {
-            console.error("Error al eliminar el carrito:", error);
-            throw new Error("No se pudo eliminar el carrito");
+            throw new Error("No se pudo eliminar el carrito: " + error.message);
         }
     }
 

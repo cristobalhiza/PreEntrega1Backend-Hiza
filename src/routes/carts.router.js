@@ -43,7 +43,7 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: `Ya existe un carrito para el usuario con ID ${userId}` });
         }
 
-        let newCart = await cartsManager.createCart({ userId, ...otros });
+        let newCart = await cartsManager.createCart();
         res.setHeader("Content-Type", "application/json");
         return res.status(201).json({ cart: newCart });
     } catch (error) {
