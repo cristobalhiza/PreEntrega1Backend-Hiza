@@ -7,7 +7,7 @@ import { Server } from 'socket.io';
 import viewsRouter from './routes/views.router.js';
 import productsRouter from './routes/products.router.js';
 import cartsRouter from './routes/carts.router.js';
-import { productsManager } from './dao/productsManager.js'; 
+import { productsManager } from './dao/productsManager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,7 +35,7 @@ app.use('/api/carts', cartsRouter);
 
 const PORT = 8080;
 server.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Servidor online en puerto ${PORT}`);
 });
 
 io.on('connection', (socket) => {
@@ -44,10 +44,9 @@ io.on('connection', (socket) => {
     socket.on('newProduct', async (product) => {
         try {
             const updatedProducts = await productsManager.addProduct(product);
-            io.emit('productListUpdated', updatedProducts); 
+            io.emit('productListUpdated', updatedProducts);
         } catch (error) {
-            console.error("Error detected:", error.message); 
-            socket.emit('productError', error.message); 
+            socket.emit('productError', error.message);
         }
     });
 
@@ -56,7 +55,7 @@ io.on('connection', (socket) => {
             const updatedProducts = await productsManager.deleteProduct(productId);
             io.emit('productListUpdated', updatedProducts);
         } catch (error) {
-            socket.emit('productError', error.message); 
+            socket.emit('productError', error.message);
         }
     });
 });
