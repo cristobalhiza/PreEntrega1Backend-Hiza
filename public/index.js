@@ -1,10 +1,6 @@
-// public/index.js
-
 const socket = io();
 
-// Escuchar los productos y actualizarlos en la vista
 socket.on('products', (products) => {
-    console.log('Productos recibidos vía WebSocket:', products); // Debug
     const productsList = document.getElementById('products-list');
     productsList.innerHTML = '';
     products.forEach(product => {
@@ -15,7 +11,6 @@ socket.on('products', (products) => {
     });
 });
 
-// Manejo de agregar producto
 const productForm = document.getElementById('product-form');
 productForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -26,12 +21,10 @@ productForm.addEventListener('submit', (e) => {
         alert("Por favor, ingresa un título válido y un precio mayor a 0.");
         return;
     }
-    console.log('Enviando nuevo producto:', { title, price });
     socket.emit('newProduct', { title, price });
-    productForm.reset(); // Limpiar el formulario después de enviar
+    productForm.reset();
 });
 
-// Manejo de eliminar producto
 const deleteForm = document.getElementById('delete-form');
 deleteForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -43,5 +36,5 @@ deleteForm.addEventListener('submit', (e) => {
     }
 
     socket.emit('deleteProduct', productId);
-    deleteForm.reset(); // Limpiar el formulario después de enviar
+    deleteForm.reset();
 });
