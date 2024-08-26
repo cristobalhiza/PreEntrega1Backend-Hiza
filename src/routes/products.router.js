@@ -1,152 +1,67 @@
 import { Router } from 'express';
-import { ProductsManager } from '../dao/productsManager.js'
 
-const router = Router();
-ProductsManager.path = 'src/data/products.json';
+const productsRouter = (productsManager) => {
+    const router = Router();
 
-router.get('/', async (req, res) => {
-    let products;
-    try {
-        products = await ProductsManager.getProducts();
-    } catch (error) {
-        res.setHeader("Content-Type", "application/json");
-        return res.status(500).json({
-            error: "Error inesperado en el servidor - Intente más tarde",
-            detalle: `${error.message}`,
-        });
-    }
+    router.get('/', async (req, res) => {
+        try {
+            const products = await productsManager.getProducts();
+            let { limit, skip } = req.query;
 
-    let { limit, skip } = req.query;
+            if (limit) {
+                limit = Number(limit);
+                if (isNaN(limit) || limit < 0) {
+                    return res.status(400).json({ error: "Limit debe ser un número entero mayor o igual a 0" });
+                }
+            } else {
+                limit = products.length;
+            }
 
-    if (limit) {
-        limit = Number(limit);
-        if (isNaN(limit) || limit < 0) {
-            return res.status(400).json({ error: "Limit debe ser un número entero mayor o igual a 0" });
-        }
-    } else {
-        limit = products.length;
-    }
+            if (skip) {
+                skip = Number(skip);
+                if (isNaN(skip) || skip < 0) {
+                    return res.status(400).json({ error: "Skip debe ser un número entero mayor o igual a 0" });
+                }
+            } else {
+                skip = 0;
+            }
 
-    if (skip) {
-        skip = Number(skip);
-        if (isNaN(skip) || skip < 0) {
-            return res.status(400).json({ error: "Skip debe ser un número entero mayor o igual a 0" });
-        }
-    } else {
-        skip = 0;
-    }
-
-    let resultado = products.slice(skip, skip + limit);
-    res.setHeader("Content-Type", "application/json");
-    res.status(200).json({ resultado });
-});
-
-router.get('/:pid', async (req, res) => {
-    let { pid } = req.params;
-    pid = Number(pid);
-    if (isNaN(pid)) {
-        return res.status(400).json({ error: "El ID del producto debe ser un número" });
-    }
-
-    let product;
-    try {
-        product = await ProductsManager.getProductById(pid);
-    } catch (error) {
-        res.setHeader("Content-Type", "application/json");
-        return res.status(500).json({
-            error: "Error inesperado en el servidor - Intente más tarde",
-            detalle: `${error.message}`,
-        });
-    }
-
-    if (!product) {
-        return res.status(404).json({ error: `Producto con ID ${pid} no encontrado` });
-    }
-    res.setHeader("Content-Type", "application/json");
-    res.status(200).json({ product });
-});
-
-router.post('/', async (req, res) => {
-    const { title, description, code, price, stock, category, ...otros } = req.body;
-
-    if (!title || !description || !code || typeof price !== 'number' || typeof stock !== 'number' || !category) {
-        return res.status(400).json({ error: "Faltan campos obligatorios o algunos campos no son válidos" });
-    }
-
-    try {
-        const addedProduct = await ProductsManager.addProduct({ title, description, code, price, stock, category, ...otros }); // Cambiado de productsManager a ProductsManager
-        res.setHeader("Content-Type", "application/json");
-        return res.status(201).json({ product: addedProduct });
-    } catch (error) {
-        res.setHeader("Content-Type", "application/json");
-        return res.status(500).json({
-            error: "Error inesperado en el servidor - Intente nuevamente",
-            detalle: `${error.message}`,
-        });
-    }
-});
-
-router.put('/:pid', async (req, res) => {
-    let { pid } = req.params;
-    pid = Number(pid);
-    if (isNaN(pid)) {
-        return res.status(400).json({ error: "El ID del producto debe ser un número" });
-    }
-
-    let product;
-    try {
-        product = await ProductsManager.getProductById(pid);
-    } catch (error) {
-        res.setHeader("Content-Type", "application/json");
-        return res.status(500).json({
-            error: "Error inesperado en el servidor - Intente más tarde",
-            detalle: `${error.message}`,
-        });
-    }
-
-    if (!product) {
-        return res.status(404).json({ error: `Producto con ID ${pid} no encontrado` });
-    }
-
-    const { ...aModificar } = req.body;
-    delete aModificar.id;
-
-    try {
-        const updatedProduct = await ProductsManager.updateProduct(pid, aModificar);
-        res.setHeader("Content-Type", "application/json");
-        return res.status(200).json({ product: updatedProduct });
-    } catch (error) {
-        res.setHeader("Content-Type", "application/json");
-        return res.status(500).json({
-            error: "Error inesperado en el servidor - Intente nuevamente",
-            detalle: `${error.message}`,
-        });
-    }
-});
-
-router.delete('/:pid', async (req, res) => {
-    let { pid } = req.params;
-    pid = Number(pid);
-    if (isNaN(pid)) {
-        return res.status(400).json({ error: "El ID del producto debe ser un número" });
-    }
-
-    try {
-        const result = await ProductsManager.deleteProduct(pid);
-        if (result) {
+            let resultado = products.slice(skip, skip + limit);
             res.setHeader("Content-Type", "application/json");
-            return res.status(200).json({ message: 'Producto eliminado' });
-        } else {
+            res.status(200).json({ resultado });
+        } catch (error) {
             res.setHeader("Content-Type", "application/json");
-            return res.status(404).json({ error: `Producto con ID ${pid} no encontrado` });
+            return res.status(500).json({
+                error: "Error inesperado en el servidor - Intente más tarde",
+                detalle: `${error.message}`,
+            });
         }
-    } catch (error) {
-        res.setHeader("Content-Type", "application/json");
-        return res.status(500).json({
-            error: "Error inesperado en el servidor - Intente nuevamente",
-            detalle: `${error.message}`,
-        });
-    }
-});
+    });
 
-export default router;
+    router.get('/:pid', async (req, res) => {
+        let { pid } = req.params;
+        pid = Number(pid);
+        if (isNaN(pid)) {
+            return res.status(400).json({ error: "El ID del producto debe ser un número" });
+        }
+
+        try {
+            const product = await productsManager.getProductById(pid);
+            if (!product) {
+                return res.status(404).json({ error: `Producto con ID ${pid} no encontrado` });
+            }
+            res.setHeader("Content-Type", "application/json");
+            res.status(200).json({ product });
+        } catch (error) {
+            res.setHeader("Content-Type", "application/json");
+            return res.status(500).json({
+                error: "Error inesperado en el servidor - Intente más tarde",
+                detalle: `${error.message}`,
+            });
+        }
+    });
+
+    return router;
+};
+
+export default productsRouter;

@@ -1,12 +1,14 @@
 import fs from 'fs/promises';
 
-export class ProductsManager {
-    static path;
+class ProductsManager {
+    static path = './src/data/products.json';
 
-    static async getProducts(limit) {
+    constructor() {}
+
+    async getProducts(limit) {
         try {
-            await fs.access(this.path);
-            const data = await fs.readFile(this.path, 'utf-8');
+            await fs.access(ProductsManager.path);
+            const data = await fs.readFile(ProductsManager.path, 'utf-8');
             const products = data ? JSON.parse(data) : [];
             return limit ? products.slice(0, limit) : products;
         } catch (error) {
@@ -14,7 +16,7 @@ export class ProductsManager {
         }
     }
 
-    static async getProductById(id) {
+    async getProductById(id) {
         try {
             const products = await this.getProducts();
             const product = products.find(p => p.id === id);
@@ -27,29 +29,45 @@ export class ProductsManager {
         }
     }
 
-    static async addProduct(product = {}) {
+    async addProduct(product = {}) {
         try {
             const products = await this.getProducts();
-
+    
+            // Convertir el precio a número
+            product.price = Number(product.price);
+    
+            // Depuración de los datos recibidos después de la conversión
+            console.log("Datos del producto después de la conversión:", product);
+    
+            // Validación para asegurarse de que el precio no sea negativo y sea un número
+            if (isNaN(product.price) || product.price < 0) {
+                throw new Error("El precio del producto debe ser un número positivo.");
+            }
+    
             const existingProduct = products.find(p => p.title === product.title);
             if (existingProduct) {
                 throw new Error(`Ya existe un producto con el título "${product.title}".`);
             }
-
+    
             const newProduct = {
                 id: this.generateId(products),
                 ...product,
                 status: true
             };
             products.push(newProduct);
-            await fs.writeFile(this.path, JSON.stringify(products, null, 2));
-            return newProduct;
+            await fs.writeFile(ProductsManager.path, JSON.stringify(products, null, 2));
+    
+            console.log("Producto agregado exitosamente:", newProduct);
+    
+            return products; 
         } catch (error) {
+            console.error("Error al agregar el producto:", error.message);
             throw new Error("No se pudo agregar el producto: " + error.message);
         }
     }
+    
 
-    static async updateProduct(id, productData) {
+    async updateProduct(id, productData) {
         try {
             const products = await this.getProducts();
 
@@ -61,8 +79,9 @@ export class ProductsManager {
             const index = products.findIndex(p => p.id === id);
             if (index !== -1) {
                 products[index] = { ...products[index], ...productData, id };
-                await fs.writeFile(this.path, JSON.stringify(products, null, 2));
-                return products[index];
+                await fs.writeFile(ProductsManager.path, JSON.stringify(products, null, 2));
+
+                return products; // Devolver la lista completa actualizada
             } else {
                 throw new Error(`Producto con ID ${id} no encontrado`);
             }
@@ -71,13 +90,20 @@ export class ProductsManager {
         }
     }
 
-    static async deleteProduct(id) {
+    async deleteProduct(id) {
+        
         try {
             const products = await this.getProducts();
-            const newProducts = products.filter(p => p.id !== id);
+            console.log("Current products:", products); // Verifica la lista de productos actual
+    
+            // Asegúrate de que el ID sea un número antes de compararlo
+            const numericId = Number(id);
+            console.log(`Attempting to delete product with numeric ID: ${numericId}`);
+            const newProducts = products.filter(p => p.id !== numericId);
             if (products.length !== newProducts.length) {
-                await fs.writeFile(this.path, JSON.stringify(newProducts, null, 2));
-                return true;
+                await fs.writeFile(ProductsManager.path, JSON.stringify(newProducts, null, 2));
+    
+                return newProducts; // Devolver la lista completa actualizada
             } else {
                 throw new Error(`Producto con ID ${id} no encontrado`);
             }
@@ -86,8 +112,12 @@ export class ProductsManager {
         }
     }
 
-    static generateId(products) {
+    generateId(products) {
         const maxId = products.reduce((max, p) => (p.id > max ? p.id : max), 0);
         return maxId + 1;
     }
 }
+
+const productsManager = new ProductsManager();
+
+export { productsManager };
